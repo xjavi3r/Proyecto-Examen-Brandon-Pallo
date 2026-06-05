@@ -312,6 +312,8 @@ def productos_list_create(request):
         data = _json_body(request)
         producto = Producto(
             nombre=data.get("nombre", ""),
+            descripcion=data.get("descripcion", ""),
+            ubicacion=data.get("ubicacion", ""),
             categoria=data.get("categoria", Producto.Categoria.OTROS),
             stock_actual=data.get("stock_actual", 0),
             stock_minimo=data.get("stock_minimo", 0),
@@ -386,6 +388,7 @@ def producto_update_completo(request, producto_id):
         campos_permitidos = [
             "nombre",
             "descripcion",
+            "ubicacion",
             "categoria",
             "stock_actual",
             "stock_minimo",

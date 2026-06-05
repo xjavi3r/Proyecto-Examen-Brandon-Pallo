@@ -70,6 +70,12 @@
                             <span class="category-pill">{{ producto.get_categoria_display }}</span>
                             <small class="muted-label">SKU #{{ producto.id }}</small>
                         </div>
+                        {% if producto.descripcion %}
+                            <p class="muted-label small mb-0 mt-2">{{ producto.descripcion|truncatechars:90 }}</p>
+                        {% endif %}
+                        {% if producto.ubicacion %}
+                            <small class="muted-label d-block mt-1">Ubicacion: {{ producto.ubicacion }}</small>
+                        {% endif %}
                     </div>
                     {% if producto.stock_actual == 0 %}
                         <span class="availability-badge badge-out">Agotado</span>
@@ -169,6 +175,10 @@
                         <div class="col-12">
                             <label class="form-label" for="{{ producto_form.descripcion.id_for_label }}">Descripcion</label>
                             {{ producto_form.descripcion }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="{{ producto_form.ubicacion.id_for_label }}">Ubicacion</label>
+                            {{ producto_form.ubicacion }}
                         </div>
                         <div class="col-12 col-md-4">
                             <label class="form-label" for="{{ producto_form.stock_actual.id_for_label }}">Stock actual</label>

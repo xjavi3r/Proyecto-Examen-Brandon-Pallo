@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Presentacion - Mantenimientos del CRUD</title>
+    <style>
+        :root {
+            --bg: #0f1720;
+            --panel: #f7f4ee;
+            --ink: #16202a;
+            --muted: #607080;
+            --accent: #0f8f78;
+            --accent-2: #d47b2a;
+            --line: #d8d2c7;
+            --code-bg: #101820;
+            --code-ink: #e8edf2;
+            --bad: #b94a48;
+            --good: #1f7a5f;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            letter-spacing: 0;
+            overflow: hidden;
+        }
+
+        .deck {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: none;
+            padding: clamp(28px, 4vw, 54px);
+            background: var(--panel);
+            overflow: auto;
+        }
+
+        .slide.active {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            gap: 22px;
+        }
+
+        .slide.dark {
+            background: #111820;
+            color: #f6f2ea;
+        }
+
+        .kicker {
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+
+        h1, h2, h3, p {
+            margin: 0;
+        }
+
+        h1 {
+            max-width: 950px;
+            font-size: clamp(46px, 8vw, 86px);
+            line-height: .95;
+            font-weight: 900;
+        }
+
+        h2 {
+            max-width: 980px;
+            font-size: clamp(34px, 5vw, 58px);
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            max-width: 760px;
+            color: var(--muted);
+            font-size: clamp(18px, 2vw, 25px);
+            line-height: 1.35;
+        }
+
+        .dark .subtitle,
+        .dark .muted {
+            color: #b7c3cf;
+        }
+
+        .content {
+            align-self: center;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .card {
+            background: #fffdfa;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .dark .card {
+            background: #172331;
+            border-color: #314254;
+            color: #f6f2ea;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            min-height: 30px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(15, 143, 120, .14);
+            color: var(--accent);
+            font-weight: 800;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .list {
+            display: grid;
+            gap: 10px;
+            color: #2d3a45;
+            font-size: 18px;
+            line-height: 1.35;
+        }
+
+        .dark .list {
+            color: #e0e8ee;
+        }
+
+        .code-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        pre {
+            margin: 0;
+            background: var(--code-bg);
+            color: var(--code-ink);
+            border-radius: 10px;
+            padding: 14px;
+            font-size: clamp(12px, 1.35vw, 15px);
+            line-height: 1.45;
+            overflow: auto;
+            max-height: 430px;
+            border: 1px solid #253544;
+        }
+
+        code {
+            font-family: Consolas, Monaco, "Courier New", monospace;
+        }
+
+        .label {
+            font-size: 13px;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .before {
+            color: var(--bad);
+        }
+
+        .after {
+            color: var(--good);
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .controls {
+            position: fixed;
+            right: 22px;
+            bottom: 18px;
+            display: flex;
+            gap: 8px;
+            z-index: 20;
+        }
+
+        button {
+            border: 1px solid rgba(255, 255, 255, .25);
+            background: rgba(15, 23, 32, .82);
+            color: #fff;
+            border-radius: 999px;
+            min-width: 42px;
+            min-height: 42px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .progress {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            height: 5px;
+            background: var(--accent);
+            width: 0;
+            z-index: 21;
+            transition: width .2s ease;
+        }
+
+        .diagram {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            gap: 14px;
+            align-items: center;
+            margin-top: 22px;
+        }
+
+        .node {
+            min-height: 110px;
+            padding: 18px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: #fffdfa;
+            display: grid;
+            align-content: center;
+            gap: 6px;
+        }
+
+        .arrow {
+            font-size: 34px;
+            color: var(--accent);
+            font-weight: 900;
+        }
+
+        .speaker-note {
+            border-left: 4px solid var(--accent-2);
+            padding: 12px 14px;
+            background: rgba(212, 123, 42, .1);
+            font-size: 16px;
+            line-height: 1.35;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fffdfa;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            text-align: left;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: top;
+            font-size: 16px;
+            line-height: 1.35;
+        }
+
+        .summary-table th {
+            background: #ebe4d8;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                overflow: auto;
+            }
+
+            .slide {
+                position: relative;
+                min-height: 100vh;
+            }
+
+            .grid-2,
+            .grid-3,
+            .code-pair,
+            .diagram {
+                grid-template-columns: 1fr;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+                justify-self: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="deck" id="deck">
+        <section class="slide dark active">
+            <div class="kicker">CRUD de Inventario y Ventas</div>
+            <div class="content">
+                <h1>Cuatro tipos de mantenimiento aplicados al CRUD</h1>
+                <p class="subtitle" style="margin-top: 22px;">Correctivo, adaptativo, perfectivo y preventivo sobre la entidad <strong>Producto</strong>, manteniendo la integracion con el Event Manager mediante <code>POST /events</code>.</p>
+            </div>
+            <div class="footer">
+                <span>Proyecto Django: app productos</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div>
+                <div class="kicker">Ubicacion del CRUD</div>
+                <h2>El mantenimiento se hizo solo sobre el CRUD de productos.</h2>
+            </div>
+            <div class="content">
+                <div class="diagram">
+                    <div class="node">
+                        <strong>Modelo</strong>
+                        <span class="muted">productos/models.py</span>
+                        <span>Define la entidad Producto.</span>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node">
+                        <strong>Formulario y vistas</strong>
+                        <span class="muted">productos/forms.py y views.py</span>
+                        <span>Crear, leer, actualizar y eliminar.</span>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node">
+                        <strong>Interfaz y API</strong>
+                        <span class="muted">templates + api_urls.py</span>
+                        <span>Uso web y endpoints REST.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <span>CRUD = Create, Read, Update, Delete</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div>
+                <div class="kicker">Resumen</div>
+                <h2>Cada mantenimiento resolvio una necesidad distinta del mismo CRUD.</h2>
+            </div>
+            <div class="content">
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Accion realizada</th>
+                            <th>Por que aplica</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Correctivo</strong></td>
+                            <td>Corregir el POST API para guardar descripcion.</td>
+                            <td>Habia un campo existente que no se persistia al crear por API.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Adaptativo</strong></td>
+                            <td>Agregar ubicacion al producto.</td>
+                            <td>El inventario necesita adaptarse a bodega, estante o mostrador.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Perfectivo</strong></td>
+                            <td>Mostrar descripcion y ubicacion en la interfaz.</td>
+                            <td>Mejora la lectura y uso del CRUD sin cambiar su objetivo.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Preventivo</strong></td>
+                            <td>Normalizar nombre/ubicacion y bloquear nombre vacio.</td>
+                            <td>Evita errores futuros al crear o actualizar productos.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="footer">
+                <span>Todos los cambios pertenecen al CRUD de Producto</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div>
+                <div class="kicker">Mantenimiento Correctivo</div>
+                <h2>Se corrigio la creacion por API para no perder datos.</h2>
+            </div>
+            <div class="content grid-2">
+                <div class="card">
+                    <span class="pill">Problema</span>
+                    <div class="list">
+                        <p>El modelo ya tenia el campo <code>descripcion</code>, pero al crear por <code>POST /api/productos/</code> no se asignaba.</p>
+                        <p>Resultado: el CRUD aceptaba productos, pero la descripcion se perdia si se usaba la API.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <span class="pill">Correccion</span>
+                    <div class="list">
+                        <p>Se agrego <code>descripcion</code> al constructor de <code>Producto</code> en <code>productos_list_create</code>.</p>
+                        <p>Tambien se agrego <code>ubicacion</code> para que el nuevo campo adaptativo funcione desde API.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <span>Archivo: productos/views.py</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div>
+                <div class="kicker">Correctivo - Codigo</div>
+                <h2>Antes y despues de la creacion por API.</h2>
+            </div>
+            <div class="content code-pair">
+                <div>
+                    <div class="label before">Antes</div>
+                    <pre><code>producto = Producto(
+    nombre=data.get("nombre", ""),
+    categoria=data.get("categoria", Producto.Categoria.OTROS),
+    stock_actual=data.get("stock_actual", 0),
+    stock_minimo=data.get("stock_minimo", 0),
+    precio_venta=data.get("precio_venta", 0),
+)</code></pre>
+                </div>
+                <div>
+                    <div class="label after">Despues</div>
+                    <pre><code>producto = Producto(
+    nombre=data.get("nombre", ""),
+    descripcion=data.get("descripcion", ""),
+    ubicacion=data.get("ubicacion", ""),
+    categoria=data.get("categoria", Producto.Categoria.OTROS),
+    stock_actual=data.get("stock_actual", 0),
+    stock_minimo=data.get("stock_minimo", 0),
+    precio_venta=data.get("precio_venta", 0),
+)</code></pre>
+                </div>
+            </div>
+            <div class="footer">
+                <span>Beneficio: la informacion enviada por API ya no se pierde</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div>
+                <div class="kicker">Mantenimiento Adaptativo</div>
+                <h2>El CRUD se adapto a una necesidad real de inventario: ubicacion fisica.</h2>
+            </div>
+            <div class="content grid-2">
+                <div class="card">
+                    <span class="pill">Necesidad nueva</span>
+                    <div class="list">
+                        <p>En un inventario real no basta con saber que un producto existe.</p>
+                        <p>Tambien importa saber donde esta: bodega, estante, mostrador o zona de venta.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <span class="pill">Cambio aplicado</span>
+                    <div class="list">
+                        <p>Se agrego el campo <code>ubicacion</code> al modelo, formulario, API y diccionario JSON.</p>
+                        <p>Esto adapta el CRUD sin cambiar su arquitectura.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <span>Archivos: models.py, forms.py, views.py, migracion 0003</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div>
+                <div class="kicker">Adaptativo - Codigo</div>
+                <h2>Antes y despues del modelo Producto.</h2>
+            </div>
+            <div class="content code-pair">
+                <div>
+                    <div class="label before">Antes</div>
+                    <pre><code>descripcion = models.TextField(blank=True, null=True)
+
+categoria = models.CharField(
+    max_length=30,
+    choices=Categoria.choices,
+    default=Categoria.OTROS,
+)</code></pre>
+                </div>
+                <div>
+                    <div class="label after">Despues</div>
+                    <pre><code>descripcion = models.TextField(blank=True, null=True)
+ubicacion = models.CharField(
+    max_length=80,
+    blank=True,
+    default="",
+)
+
+categoria = models.CharField(
+    max_length=30,
+    choices=Categoria.choices,
+    default=Categoria.OTROS,
+)</code></pre>
+                </div>
+            </div>
+            <div class="footer">
+                <span>Beneficio: el CRUD ahora registra donde se encuentra el producto</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div>
+                <div class="kicker">Mantenimiento Perfectivo</div>
+                <h2>Se mejoro la experiencia de lectura y captura del CRUD.</h2>
+            </div>
+            <div class="content grid-3">
+                <div class="card">
+                    <h3>Antes</h3>
+                    <p class="list">Las tarjetas mostraban nombre, categoria, SKU, precio y stock.</p>
+                </div>
+                <div class="card">
+                    <h3>Cambio</h3>
+                    <p class="list">Se agrego descripcion resumida y ubicacion visible en cada tarjeta.</p>
+                </div>
+                <div class="card">
+                    <h3>Despues</h3>
+                    <p class="list">El usuario identifica mejor el producto antes de editar, vender o eliminar.</p>
+                </div>
+            </div>
+            <div class="footer">
+                <span>Archivo: productos/templates/productos/index.html</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div>
+                <div class="kicker">Perfectivo - Codigo</div>
+                <h2>Antes y despues en la tarjeta del producto.</h2>
+            </div>
+            <div class="content code-pair">
+                <div>
+                    <div class="label before">Antes</div>
+                    <pre><code>&lt;div class="d-flex flex-wrap align-items-center gap-2"&gt;
+    &lt;span class="category-pill"&gt;
+        {{ producto.get_categoria_display }}
+    &lt;/span&gt;
+    &lt;small class="muted-label"&gt;SKU #{{ producto.id }}&lt;/small&gt;
+&lt;/div&gt;</code></pre>
+                </div>
+                <div>
+                    <div class="label after">Despues</div>
+                    <pre><code>&lt;div class="d-flex flex-wrap align-items-center gap-2"&gt;
+    &lt;span class="category-pill"&gt;
+        {{ producto.get_categoria_display }}
+    &lt;/span&gt;
+    &lt;small class="muted-label"&gt;SKU #{{ producto.id }}&lt;/small&gt;
+&lt;/div&gt;
+{% if producto.descripcion %}
+    &lt;p class="muted-label small mb-0 mt-2"&gt;
+        {{ producto.descripcion|truncatechars:90 }}
+    &lt;/p&gt;
+{% endif %}
+{% if producto.ubicacion %}
+    &lt;small class="muted-label d-block mt-1"&gt;
+        Ubicacion: {{ producto.ubicacion }}
+    &lt;/small&gt;
+{% endif %}</code></pre>
+                </div>
+            </div>
+            <div class="footer">
+                <span>Beneficio: menos clicks para entender el inventario</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div>
+                <div class="kicker">Mantenimiento Preventivo</div>
+                <h2>Se previenen errores de datos antes de que lleguen a la base.</h2>
+            </div>
+            <div class="content grid-2">
+                <div class="card">
+                    <span class="pill">Riesgo</span>
+                    <div class="list">
+                        <p>Un producto podria llegar con nombre vacio o con espacios innecesarios desde la API.</p>
+                        <p>Eso causa busquedas inconsistentes y registros dificiles de mantener.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <span class="pill">Prevencion</span>
+                    <div class="list">
+                        <p>Se agrego <code>clean()</code> en el modelo para normalizar <code>nombre</code> y <code>ubicacion</code>.</p>
+                        <p>Si el nombre queda vacio, se bloquea el guardado con una validacion.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <span>Archivo: productos/models.py</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div>
+                <div class="kicker">Preventivo - Codigo</div>
+                <h2>Antes y despues de las validaciones del modelo.</h2>
+            </div>
+            <div class="content code-pair">
+                <div>
+                    <div class="label before">Antes</div>
+                    <pre><code>def __str__(self):
+    return f"{self.nombre} ({self.categoria})"
+
+def to_dict(self):
+    return {
+        "id": self.id,
+        "nombre": self.nombre,
+        "descripcion": self.descripcion,
+        "categoria": self.categoria,
+    }</code></pre>
+                </div>
+                <div>
+                    <div class="label after">Despues</div>
+                    <pre><code>def __str__(self):
+    return f"{self.nombre} ({self.categoria})"
+
+def clean(self):
+    super().clean()
+    self.nombre = (self.nombre or "").strip()
+    self.ubicacion = (self.ubicacion or "").strip()
+
+    if not self.nombre:
+        raise ValidationError({
+            "nombre": "El nombre no puede estar vacio."
+        })</code></pre>
+                </div>
+            </div>
+            <div class="footer">
+                <span>Beneficio: datos mas limpios y menos errores futuros</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div>
+                <div class="kicker">Integracion</div>
+                <h2>El CRUD mantiene el envio de eventos al Event Manager.</h2>
+            </div>
+            <div class="content grid-2">
+                <div>
+                    <pre><code>enviar_evento_async(
+    "CREATE",
+    f"Se registro un nuevo producto: {producto.nombre}",
+    payload,
+    title="Producto creado",
+)</code></pre>
+                </div>
+                <div class="card">
+                    <span class="pill">Por que importa</span>
+                    <div class="list">
+                        <p>Cada accion del CRUD sigue enviando un evento por <code>POST /events</code>.</p>
+                        <p>Los cambios de mantenimiento no rompen la integracion con el EPN Event Manager.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <span>Archivo: productos/event_client.py</span>
+                <span class="page"></span>
+            </div>
+        </section>
+
+        <section class="slide dark">
+            <div class="kicker">Cierre</div>
+            <div class="content">
+                <h2>Conclusion para la exposicion</h2>
+                <div class="speaker-note" style="margin-top: 24px;">
+                    Se aplicaron cuatro mantenimientos especificamente al CRUD de Producto. El correctivo soluciono una perdida de datos en la API; el adaptativo agrego ubicacion para una necesidad real de inventario; el perfectivo mejoro la visualizacion y captura de informacion; y el preventivo agrego validaciones para evitar datos inconsistentes. El CRUD conserva sus operaciones basicas y la integracion con el Event Manager.
+                </div>
+            </div>
+            <div class="footer">
+                <span>Fin</span>
+                <span class="page"></span>
+            </div>
+        </section>
+    </main>
+
+    <div class="controls" aria-label="Controles de presentacion">
+        <button type="button" id="prev" title="Anterior">‹</button>
+        <button type="button" id="next" title="Siguiente">›</button>
+    </div>
+    <div class="progress" id="progress"></div>
+
+    <script>
+        const slides = Array.from(document.querySelectorAll(".slide"));
+        const progress = document.getElementById("progress");
+        let index = 0;
+
+        function render() {
+            slides.forEach((slide, current) => {
+                slide.classList.toggle("active", current === index);
+                const page = slide.querySelector(".page");
+                if (page) {
+                    page.textContent = `${current + 1} / ${slides.length}`;
+                }
+            });
+            progress.style.width = `${((index + 1) / slides.length) * 100}%`;
+        }
+
+        function go(delta) {
+            index = Math.min(Math.max(index + delta, 0), slides.length - 1);
+            render();
+        }
+
+        document.getElementById("prev").addEventListener("click", () => go(-1));
+        document.getElementById("next").addEventListener("click", () => go(1));
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
+                event.preventDefault();
+                go(1);
+            }
+            if (event.key === "ArrowLeft" || event.key === "PageUp") {
+                event.preventDefault();
+                go(-1);
+            }
+            if (event.key === "Home") {
+                index = 0;
+                render();
+            }
+            if (event.key === "End") {
+                index = slides.length - 1;
+                render();
+            }
+        });
+
+        render();
+    </script>
+</body>
+</html>

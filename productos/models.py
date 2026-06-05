@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -19,6 +20,7 @@ class Producto(models.Model):
 
     # NUEVO: Campo de descripción para mejorar información del producto (MANTENIMIENTO ADAPTATIVO)
     descripcion = models.TextField(blank=True, null=True)
+    ubicacion = models.CharField(max_length=80, blank=True, default="")
 
     categoria = models.CharField(
         max_length=30,
@@ -43,6 +45,14 @@ class Producto(models.Model):
     def __str__(self):
         return f"{self.nombre} ({self.categoria})"
 
+    def clean(self):
+        super().clean()
+        self.nombre = (self.nombre or "").strip()
+        self.ubicacion = (self.ubicacion or "").strip()
+
+        if not self.nombre:
+            raise ValidationError({"nombre": "El nombre no puede estar vacio."})
+
     def to_dict(self):
         # ANTERIOR: Retornaba solo 6 campos
         # CAMBIO: Agregar descripción y fechas de auditoría (MANTENIMIENTO ADAPTATIVO)
@@ -50,6 +60,7 @@ class Producto(models.Model):
             "id": self.id,
             "nombre": self.nombre,
             "descripcion": self.descripcion,  # NUEVO
+            "ubicacion": self.ubicacion,
             "categoria": self.categoria,
             "stock_actual": self.stock_actual,
             "stock_minimo": self.stock_minimo,

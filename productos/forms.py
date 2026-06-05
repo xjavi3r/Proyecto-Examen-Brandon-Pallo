@@ -12,6 +12,7 @@ class ProductoForm(forms.ModelForm):
         fields = [
             "nombre",
             "descripcion",
+            "ubicacion",
             "categoria",
             "stock_actual",
             "stock_minimo",
@@ -30,6 +31,12 @@ class ProductoForm(forms.ModelForm):
                     "class": "form-control",
                     "placeholder": "Descripción del producto",
                     "rows": 3,
+                }
+            ),
+            "ubicacion": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej. Bodega A - Estante 2",
                 }
             ),
             "categoria": forms.Select(attrs={"class": "form-select"}),
@@ -75,4 +82,3 @@ class ProductoForm(forms.ModelForm):
                 "El stock actual no puede ser menor al stock mínimo."
             )
         return cleaned_data
-
