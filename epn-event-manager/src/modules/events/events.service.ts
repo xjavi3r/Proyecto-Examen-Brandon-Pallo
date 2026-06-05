@@ -55,9 +55,7 @@ export class EventsService {
     }
 
     if (action === 'DELETE') {
-      // BUG INTENCIONAL (correctivo): se construye el objeto pero se devuelve
-      // exito antes de persistirlo. El save nunca se ejecuta.
-      this.deleteRepo.create({
+      const ev = this.deleteRepo.create({
         source: dto.source,
         entity: dto.entity,
         action: dto.action,
@@ -65,6 +63,7 @@ export class EventsService {
         payload: payloadStr,
         createdAt: localDate,
       });
+      await this.deleteRepo.save(ev);
       return { ok: true };
     }
 

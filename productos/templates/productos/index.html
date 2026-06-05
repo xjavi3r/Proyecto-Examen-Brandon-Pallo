@@ -1,0 +1,375 @@
+{% extends "productos/base.html" %}
+
+{% block title %}Catalogo POS Express{% endblock %}
+
+{% block content %}
+<section class="hero-panel mb-4">
+    <div class="row g-4 align-items-center">
+        <div class="col-12 col-lg-6">
+            <p class="text-uppercase fw-bold text-success mb-2">Sistema de control de inventario</p>
+            <h2 class="display-6 fw-bold mb-2">Catalogo rapido para vender sin friccion</h2>
+            <p class="muted-label mb-0">Busca productos, agrega al carrito express y confirma la venta para descontar stock automaticamente.</p>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="row g-3">
+                <div class="col-4">
+                    <div class="text-center">
+                        <div class="metric-value">{{ total_productos }}</div>
+                        <small class="muted-label">Productos</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center">
+                        <div class="metric-value text-warning">{{ productos_bajo_stock }}</div>
+                        <small class="muted-label">Ultimas unidades</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center">
+                        <div class="metric-value">{{ productos|length }}</div>
+                        <small class="muted-label">En vista</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="catalog-toolbar p-3 mb-4">
+    <form class="row g-3 align-items-end" method="get">
+        <div class="col-12 col-lg-5">
+            <label for="q" class="form-label muted-label">Buscar por nombre</label>
+            <input class="form-control" id="q" name="q" value="{{ busqueda }}" placeholder="Camiseta, mochila, sombrero...">
+        </div>
+        <div class="col-12 col-lg-4">
+            <label for="categoria" class="form-label muted-label">Categoria</label>
+            <select class="form-select" id="categoria" name="categoria">
+                <option value="">Todas las categorias</option>
+                {% for valor, etiqueta in categorias %}
+                    <option value="{{ valor }}" {% if categoria_actual == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-lg-3 d-flex gap-2">
+            <button class="btn btn-accent flex-fill" type="submit">Filtrar</button>
+            <a class="btn btn-outline-dark" href="{% url 'productos:index' %}">Limpiar</a>
+            <button class="btn btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#crearProductoModal">Nuevo</button>
+        </div>
+    </form>
+</section>
+
+<section class="row g-4">
+    {% for producto in productos %}
+        <article class="col-12 col-sm-6 col-xl-4">
+            <div class="product-card">
+                <div class="product-visual">{{ producto.nombre|slice:":1"|upper }}</div>
+                <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+                    <div>
+                        <h3 class="h5 fw-bold mb-1">{{ producto.nombre }}</h3>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="category-pill">{{ producto.get_categoria_display }}</span>
+                            <small class="muted-label">SKU #{{ producto.id }}</small>
+                        </div>
+                    </div>
+                    {% if producto.stock_actual == 0 %}
+                        <span class="availability-badge badge-out">Agotado</span>
+                    {% elif producto.stock_actual <= producto.stock_minimo %}
+                        <span class="availability-badge badge-low">Ultimas unidades</span>
+                    {% else %}
+                        <span class="availability-badge badge-available">Disponible</span>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex align-items-end justify-content-between gap-3 mb-3">
+                    <div>
+                        <small class="muted-label d-block">Precio de venta</small>
+                        <span class="price">${{ producto.precio_venta }}</span>
+                    </div>
+                    <span class="stock-chip">{{ producto.stock_actual }} disp.</span>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button
+                        class="btn btn-accent add-to-cart"
+                        type="button"
+                        data-id="{{ producto.id }}"
+                        data-name="{{ producto.nombre }}"
+                        data-price="{{ producto.precio_venta }}"
+                        data-stock="{{ producto.stock_actual }}"
+                        {% if producto.stock_actual == 0 %}disabled{% endif %}
+                    >
+                        Añadir
+                    </button>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-dark flex-fill" href="{% url 'productos:update_web' producto.id %}">Editar</a>
+                        <button class="btn btn-outline-dark flex-fill" type="button" data-bs-toggle="modal" data-bs-target="#entradaStock{{ producto.id }}">Stock +</button>
+                        <button class="btn btn-outline-danger flex-fill" type="button" data-bs-toggle="modal" data-bs-target="#eliminarProducto{{ producto.id }}">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </article>
+    {% empty %}
+        <div class="col-12">
+            <div class="empty-state text-center p-5">
+                <h3 class="h4 fw-bold mb-2">No hay productos para mostrar</h3>
+                <p class="muted-label mb-4">Agrega el primer producto o cambia los filtros actuales.</p>
+                <button class="btn btn-accent" type="button" data-bs-toggle="modal" data-bs-target="#crearProductoModal">Agregar producto</button>
+            </div>
+        </div>
+    {% endfor %}
+</section>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
+    <div class="offcanvas-header border-bottom">
+        <div>
+            <h2 class="offcanvas-title h5 fw-bold" id="cartOffcanvasLabel">Venta express</h2>
+            <small class="muted-label">Carrito del cliente</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+        <div id="cartEmpty" class="text-center py-5">
+            <div class="h5 mb-2">Carrito vacio</div>
+            <p class="muted-label mb-0">Añade productos desde el catalogo.</p>
+        </div>
+        <div id="cartItems" class="vstack gap-3"></div>
+        <div class="mt-auto pt-4">
+            <div class="d-flex justify-content-between align-items-center border-top pt-3 mb-3">
+                <span class="fw-bold">Total</span>
+                <span class="h4 fw-bold mb-0" id="cartTotal">$0.00</span>
+            </div>
+            <form method="post" action="{% url 'productos:venta_express' %}" id="cartForm">
+                {% csrf_token %}
+                <input type="hidden" name="cart_payload" id="cartPayload">
+                <button class="btn btn-accent w-100" type="submit" id="checkoutButton" disabled>Confirmar venta</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="crearProductoModal" tabindex="-1" aria-labelledby="crearProductoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="{% url 'productos:create_web' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h2 class="modal-title h5" id="crearProductoModalLabel">Agregar nuevo producto</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="{{ producto_form.nombre.id_for_label }}">Nombre</label>
+                            {{ producto_form.nombre }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="{{ producto_form.categoria.id_for_label }}">Categoria</label>
+                            {{ producto_form.categoria }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="{{ producto_form.descripcion.id_for_label }}">Descripcion</label>
+                            {{ producto_form.descripcion }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="{{ producto_form.stock_actual.id_for_label }}">Stock actual</label>
+                            {{ producto_form.stock_actual }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="{{ producto_form.stock_minimo.id_for_label }}">Stock minimo</label>
+                            {{ producto_form.stock_minimo }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="{{ producto_form.precio_venta.id_for_label }}">Precio de venta</label>
+                            {{ producto_form.precio_venta }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-accent">Guardar producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% for producto in productos %}
+    <div class="modal fade" id="entradaStock{{ producto.id }}" tabindex="-1" aria-labelledby="entradaStockLabel{{ producto.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="post" action="{% url 'productos:stock_web' producto.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="movimiento" value="entrada">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="entradaStockLabel{{ producto.id }}">Ingresar stock</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-3">{{ producto.nombre }} tiene <strong>{{ producto.stock_actual }}</strong> unidades.</p>
+                        <label class="form-label" for="entradaCantidad{{ producto.id }}">Cantidad a ingresar</label>
+                        <input class="form-control" id="entradaCantidad{{ producto.id }}" type="number" name="cantidad" min="1" value="1" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Ingresar stock</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="eliminarProducto{{ producto.id }}" tabindex="-1" aria-labelledby="eliminarProductoLabel{{ producto.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="post" action="{% url 'productos:delete_web' producto.id %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="eliminarProductoLabel{{ producto.id }}">Eliminar producto</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-0">Vas a eliminar <strong>{{ producto.nombre }}</strong>. Esta accion no se puede deshacer.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (() => {
+        const cart = new Map();
+        const currency = new Intl.NumberFormat("es-EC", {
+            style: "currency",
+            currency: "USD",
+        });
+        const cartItems = document.getElementById("cartItems");
+        const cartEmpty = document.getElementById("cartEmpty");
+        const cartTotal = document.getElementById("cartTotal");
+        const cartCount = document.getElementById("cartCount");
+        const cartPayload = document.getElementById("cartPayload");
+        const checkoutButton = document.getElementById("checkoutButton");
+
+        const parsePrice = (value) => Number.parseFloat(String(value).replace(",", ".")) || 0;
+
+        const syncCart = () => {
+            cartItems.innerHTML = "";
+            let total = 0;
+            let units = 0;
+
+            cart.forEach((item) => {
+                total += item.price * item.quantity;
+                units += item.quantity;
+
+                const line = document.createElement("div");
+                line.className = "cart-line";
+                line.innerHTML = `
+                    <div class="d-flex justify-content-between gap-3 mb-2">
+                        <div>
+                            <div class="fw-bold">${item.name}</div>
+                            <small class="muted-label">${currency.format(item.price)} x ${item.quantity}</small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger cart-remove" type="button" data-id="${item.id}">Quitar</button>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="btn-group" role="group" aria-label="Cantidad">
+                            <button class="btn btn-outline-dark cart-qty-btn cart-decrease" type="button" data-id="${item.id}">-</button>
+                            <span class="btn btn-outline-dark disabled">${item.quantity}</span>
+                            <button class="btn btn-outline-dark cart-qty-btn cart-increase" type="button" data-id="${item.id}" ${item.quantity >= item.stock ? "disabled" : ""}>+</button>
+                        </div>
+                        <strong>${currency.format(item.price * item.quantity)}</strong>
+                    </div>
+                `;
+                cartItems.appendChild(line);
+            });
+
+            cartEmpty.classList.toggle("d-none", cart.size > 0);
+            cartTotal.textContent = currency.format(total);
+            cartCount.textContent = units;
+            checkoutButton.disabled = cart.size === 0;
+            cartPayload.value = JSON.stringify([...cart.values()].map((item) => ({
+                id: item.id,
+                quantity: item.quantity,
+            })));
+        };
+
+        const openCart = () => {
+            const panel = document.getElementById("cartOffcanvas");
+            if (window.bootstrap) {
+                window.bootstrap.Offcanvas.getOrCreateInstance(panel).show();
+                return;
+            }
+            panel.style.visibility = "visible";
+            panel.style.display = "block";
+            panel.classList.add("show");
+        };
+
+        document.addEventListener("click", (event) => {
+            const addButton = event.target.closest(".add-to-cart");
+            if (addButton) {
+                const id = addButton.dataset.id;
+                const current = cart.get(id);
+                const stock = Number.parseInt(addButton.dataset.stock, 10);
+
+                if (current) {
+                    if (current.quantity < stock) {
+                        current.quantity += 1;
+                    }
+                } else {
+                    cart.set(id, {
+                        id,
+                        name: addButton.dataset.name,
+                        price: parsePrice(addButton.dataset.price),
+                        stock,
+                        quantity: 1,
+                    });
+                }
+
+                syncCart();
+                openCart();
+                return;
+            }
+
+            const increaseButton = event.target.closest(".cart-increase");
+            if (increaseButton) {
+                const item = cart.get(increaseButton.dataset.id);
+                if (item && item.quantity < item.stock) {
+                    item.quantity += 1;
+                    syncCart();
+                }
+                return;
+            }
+
+            const decreaseButton = event.target.closest(".cart-decrease");
+            if (decreaseButton) {
+                const item = cart.get(decreaseButton.dataset.id);
+                if (item && item.quantity > 1) {
+                    item.quantity -= 1;
+                } else if (item) {
+                    cart.delete(item.id);
+                }
+                syncCart();
+                return;
+            }
+
+            const removeButton = event.target.closest(".cart-remove");
+            if (removeButton) {
+                cart.delete(removeButton.dataset.id);
+                syncCart();
+            }
+        });
+
+        document.getElementById("cartForm").addEventListener("submit", () => {
+            checkoutButton.disabled = true;
+        });
+
+        syncCart();
+    })();
+</script>
+{% endblock %}

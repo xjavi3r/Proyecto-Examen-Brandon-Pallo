@@ -1,0 +1,51 @@
+{% extends "productos/base.html" %}
+
+{% block title %}Editar producto{% endblock %}
+
+{% block content %}
+<section class="catalog-toolbar p-3 mb-4">
+    <div class="d-flex align-items-center justify-content-between gap-3">
+        <div>
+            <p class="text-uppercase fw-bold text-success mb-2">Producto</p>
+            <h2 class="h4 fw-bold mb-0">Editar {{ producto.nombre }}</h2>
+        </div>
+        <a class="btn btn-outline-dark" href="{% url 'productos:index' %}">Volver</a>
+    </div>
+</section>
+
+<section class="catalog-toolbar p-3">
+    <form method="post" action="{% url 'productos:update_web' producto.id %}">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="{{ form.nombre.id_for_label }}">Nombre</label>
+                {{ form.nombre }}
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="{{ form.categoria.id_for_label }}">Categoria</label>
+                {{ form.categoria }}
+            </div>
+            <div class="col-12">
+                <label class="form-label" for="{{ form.descripcion.id_for_label }}">Descripcion</label>
+                {{ form.descripcion }}
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="{{ form.stock_actual.id_for_label }}">Stock actual</label>
+                {{ form.stock_actual }}
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="{{ form.stock_minimo.id_for_label }}">Stock minimo</label>
+                {{ form.stock_minimo }}
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="{{ form.precio_venta.id_for_label }}">Precio de venta</label>
+                {{ form.precio_venta }}
+            </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <a class="btn btn-outline-dark" href="{% url 'productos:index' %}">Cancelar</a>
+            <button class="btn btn-accent" type="submit">Guardar cambios</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

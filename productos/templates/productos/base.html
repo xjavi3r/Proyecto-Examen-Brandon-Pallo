@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Inventario y ventas{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --page-bg: #f5f7f8;
+            --surface: #ffffff;
+            --surface-strong: #111820;
+            --line: #e2e8ec;
+            --line-dark: #26323a;
+            --ink: #101820;
+            --muted: #687783;
+            --accent: #0f8f78;
+            --accent-soft: rgba(15, 143, 120, .12);
+            --orange: #e8831f;
+            --radius-lg: 16px;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--page-bg);
+            color: var(--ink);
+            letter-spacing: 0;
+        }
+
+        .app-shell {
+            max-width: 1280px;
+        }
+
+        .topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .brand-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-strong);
+            color: #ffffff;
+            font-weight: 800;
+        }
+
+        .muted-label {
+            color: var(--muted);
+        }
+
+        .hero-panel,
+        .catalog-toolbar,
+        .product-card,
+        .empty-state {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+        }
+
+        .hero-panel {
+            padding: 1.35rem;
+        }
+
+        .metric-value {
+            font-size: clamp(1.55rem, 4vw, 2.25rem);
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .form-control,
+        .form-select {
+            border-color: var(--line);
+            border-radius: 12px;
+            min-height: 44px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 .2rem rgba(15, 143, 120, .14);
+        }
+
+        .btn {
+            border-radius: 12px;
+        }
+
+        .btn-accent {
+            --bs-btn-color: #ffffff;
+            --bs-btn-bg: var(--accent);
+            --bs-btn-border-color: var(--accent);
+            --bs-btn-hover-color: #ffffff;
+            --bs-btn-hover-bg: #0b735f;
+            --bs-btn-hover-border-color: #0b735f;
+        }
+
+        .product-card {
+            min-height: 100%;
+            padding: 1rem;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(15, 143, 120, .34);
+            box-shadow: 0 18px 44px rgba(16, 24, 32, .12);
+        }
+
+        .product-visual {
+            aspect-ratio: 4 / 3;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .55), transparent 28%),
+                linear-gradient(135deg, #15313b, #0f8f78 54%, #f4bf64);
+            color: #ffffff;
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        .badge-available {
+            background: rgba(25, 135, 84, .13);
+            color: #11633f;
+            border: 1px solid rgba(25, 135, 84, .22);
+        }
+
+        .badge-low {
+            background: rgba(232, 131, 31, .13);
+            color: #a9550d;
+            border: 1px solid rgba(232, 131, 31, .24);
+        }
+
+        .badge-out {
+            background: rgba(108, 117, 125, .14);
+            color: #5d666d;
+            border: 1px solid rgba(108, 117, 125, .22);
+        }
+
+        .availability-badge,
+        .category-pill {
+            border-radius: 999px;
+            padding: .35rem .65rem;
+            font-size: .8rem;
+            font-weight: 700;
+        }
+
+        .category-pill {
+            background: #f1f5f7;
+            color: #42515b;
+        }
+
+        .price {
+            font-size: 1.45rem;
+            font-weight: 850;
+        }
+
+        .stock-chip {
+            background: var(--accent-soft);
+            color: #0b735f;
+            border-radius: 999px;
+            padding: .28rem .6rem;
+            font-size: .82rem;
+            font-weight: 700;
+        }
+
+        .modal-content,
+        .offcanvas {
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--line);
+        }
+
+        .offcanvas {
+            width: min(420px, 100vw) !important;
+        }
+
+        .cart-line {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: .8rem;
+            background: #fbfcfc;
+        }
+
+        .cart-qty-btn {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .cart-fallback-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 24, 32, .45);
+            z-index: 1040;
+        }
+
+        @media (max-width: 575.98px) {
+            .hero-panel {
+                padding: 1rem;
+            }
+
+            .product-card {
+                padding: .85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar sticky-top">
+        <div class="container app-shell py-3 d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="brand-mark">IV</span>
+                <div>
+                    <h1 class="h5 mb-0">Inventario y ventas</h1>
+                    <small class="muted-label">Catalogo POS Express</small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-accent position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas">
+                    Carrito
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">0</span>
+                </button>
+                <a class="btn btn-outline-dark d-none d-sm-inline-flex" href="http://localhost:3000/events" target="_blank" rel="noreferrer">
+                    Eventos
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container app-shell py-4">
+        {% if messages %}
+            <div class="mb-3">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (() => {
+            const showLayer = (element, showClass, backdropClass) => {
+                if (!element) return;
+                element.style.visibility = "visible";
+                element.style.display = "block";
+                element.removeAttribute("aria-hidden");
+                element.classList.add(showClass);
+                document.body.classList.add("modal-open");
+
+                if (backdropClass && !document.querySelector(`.${backdropClass}`)) {
+                    const backdrop = document.createElement("div");
+                    backdrop.className = backdropClass;
+                    document.body.appendChild(backdrop);
+                }
+            };
+
+            const hideLayer = (element, showClass, backdropSelector) => {
+                if (!element) return;
+                element.classList.remove(showClass);
+                element.style.display = "none";
+                element.style.visibility = "";
+                element.setAttribute("aria-hidden", "true");
+                document.body.classList.remove("modal-open");
+                document.querySelectorAll(backdropSelector).forEach((backdrop) => backdrop.remove());
+            };
+
+            document.addEventListener("click", (event) => {
+                if (window.bootstrap) return;
+
+                const modalTrigger = event.target.closest("[data-bs-toggle='modal']");
+                if (modalTrigger) {
+                    event.preventDefault();
+                    showLayer(document.querySelector(modalTrigger.getAttribute("data-bs-target")), "show", "modal-backdrop fade show");
+                    return;
+                }
+
+                const offcanvasTrigger = event.target.closest("[data-bs-toggle='offcanvas']");
+                if (offcanvasTrigger) {
+                    event.preventDefault();
+                    showLayer(document.querySelector(offcanvasTrigger.getAttribute("data-bs-target")), "show", "cart-fallback-backdrop");
+                    return;
+                }
+
+                const dismiss = event.target.closest("[data-bs-dismiss]");
+                if (dismiss) {
+                    event.preventDefault();
+                    const modal = dismiss.closest(".modal");
+                    const offcanvas = dismiss.closest(".offcanvas");
+                    hideLayer(modal, "show", ".modal-backdrop");
+                    hideLayer(offcanvas, "show", ".cart-fallback-backdrop");
+                    return;
+                }
+
+                if (event.target.classList.contains("modal")) {
+                    hideLayer(event.target, "show", ".modal-backdrop");
+                }
+
+                if (event.target.classList.contains("cart-fallback-backdrop")) {
+                    hideLayer(document.querySelector(".offcanvas.show"), "show", ".cart-fallback-backdrop");
+                }
+            });
+
+            document.addEventListener("keydown", (event) => {
+                if (window.bootstrap || event.key !== "Escape") return;
+                hideLayer(document.querySelector(".modal.show"), "show", ".modal-backdrop");
+                hideLayer(document.querySelector(".offcanvas.show"), "show", ".cart-fallback-backdrop");
+            });
+        })();
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
